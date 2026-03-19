@@ -12,6 +12,6 @@
 #include "stm32f4xx.h"
 void adc_dma_init(void);
 
-#define NUM_OF_CHANNELS 2
+#define NUM_OF_CHANNELS 1
 
 #endif /* ADC_DMA_H_ */
