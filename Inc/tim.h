@@ -11,7 +11,6 @@
 #include "stm32f4xx.h"
 
 void tim2_init(void);
-void tim2_stop(void);
 void delay(void);
 
 void tim3_init(void);

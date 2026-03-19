@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "stm32f4xx.h"
-#include "uart.h"
 #include "adc_dma.h"
 #include "tim.h"
 #include "i2c.h"
@@ -14,53 +13,42 @@
 typedef enum{
 	PLAY = 96,
 	CONFIG = 80,
-//	RESET_STATE = 48 //Ten reset chyba wydupić, także też trzeba będzie wywalić inicjalizacje pinu do buttona
 }state;
 
 extern uint16_t adc_raw_data[NUM_OF_CHANNELS];
+
 state metronom_state = PLAY; //Initial state
 
-char new = 100; //Zastąpić nazwę
+char current_bpm = 100;
 
-//ISR for metronome update
-void TIM3_IRQHandler(void){ //W którym miejscu powinny być handlery?
-    		if(TIM3->SR & TIM_SR_UIF){
-    			TIM3->SR &= ~(TIM_SR_UIF);
-    			GPIOA->ODR ^= (1U<<7);
-    		}
-    	}
 
 int main(void)
 {
-    /*Initialize debug UART*/
-    uart_init(); //PA2 //Uart był do debugowania ale przestał być potrzebny to można wywalić
-
-    /*Initialize ADC DMA*/
-    adc_dma_init(); //ADC for potentiometer for changing BPM
-    gpio_init(); //PA4 PA5 PA6 buttony, dioda PA7
-
+    adc_dma_init(); //ADC for potentiometer for changing BPM, PA1
+    gpio_init(); //PA4 PA5 buttons, PA7 diode
 
     tim2_init(); //Timer for refreshing 7 segment display
     tim3_init(); //Timer for metronome update
 
-    i2c1_init(); //I2C for EEPROM memory
+    i2c1_init(); //I2C for EEPROM memory, PB8 PB9
 
-    disp7seg_init();
+    disp7seg_init(); //PC0-PC9 pins
 
     NVIC_SetPriority(TIM3_IRQn, 0x03);
     NVIC_EnableIRQ(TIM3_IRQn);
 
-    m24AA01_byte_read(BPM_MEMORY_ADDRESS, &new);
+
+    m24AA01_byte_read(BPM_MEMORY_ADDRESS, &current_bpm);
 
     //Filtering (to chyba w osobną funkcje można walnąć)
-    uint16_t alpha = 12;  // 0 < alpha < 1
+    uint16_t alpha = 12;
     uint16_t filtered = 0;
     uint16_t last_output = 0;
     uint16_t value = 0;
 
     while(1)
     {
-    	//ADC i filtrowanie
+    	//ADC and filtering
 
     	filtered = filtered + (adc_raw_data[0] - filtered) / alpha;
     	value = (60 + (filtered - 760) / 40);
@@ -73,19 +61,19 @@ int main(void)
     	if((GPIOA->IDR & 112) < 112)
     		{
     		metronom_state = (GPIOA->IDR & 112);
-    		tim3_update(new);
-    		m24AA01_write(BPM_MEMORY_ADDRESS, 1, &new); //Prototyp zapisywania BPM do EEPROMu za każdym razem.
+    		tim3_update(current_bpm);
+    		m24AA01_write(BPM_MEMORY_ADDRESS, 1, &current_bpm); //Prototyp zapisywania BPM do EEPROMu za każdym razem.
     		}
 
     	//State machine
     	switch(metronom_state){
     	case PLAY:
-    		disp7seg_display_number(new);
+    		disp7seg_display_number(current_bpm);
     		break;
 
     	case CONFIG:
     		disp7seg_display_number(value);
-    		new = value;
+    		current_bpm = value;
     		break;
 
     	default: break;
@@ -94,6 +82,13 @@ int main(void)
     }
 }
 
+//ISR for metronome update
+void TIM3_IRQHandler(void){
+    		if(TIM3->SR & TIM_SR_UIF){
+    			TIM3->SR &= ~(TIM_SR_UIF);
+    			GPIOA->ODR ^= (1U<<7);
+    		}
+    	}
 
 
 

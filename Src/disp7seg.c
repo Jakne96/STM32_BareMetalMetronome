@@ -5,13 +5,11 @@
  *      Author: janec
  */
 
-
 #include "disp7seg.h"
 
 #define GPIOCEN (1U<<2)
 
-
-uint8_t digits[10] = ////Może tu jakiegoś consta dojebać co? Jak mam coś takiego to lepiej makro czy tablica?
+uint8_t digits[10] =
 {
 		0b00111111, //0
 		0b00000110, //1
@@ -25,15 +23,11 @@ uint8_t digits[10] = ////Może tu jakiegoś consta dojebać co? Jak mam coś tak
 		0b01101111 //9
 };
 
-
-
 void disp7seg_init(void)
 {
 	//Wyświetlacz 7segmentowy, PC0-PC6, PC7 digit 4, PC8 digit 3, PC9 digit 2
-	//Initialize GPIO
 	RCC->AHB1ENR |= GPIOCEN;
 
-	//Set GPIO to output mode
 	GPIOC->MODER |= (1U<<0);
 	GPIOC->MODER &= ~(1U<<1);
 	GPIOC->MODER |= (1U<<2);
@@ -55,7 +49,6 @@ void disp7seg_init(void)
 	GPIOC->MODER |= (1U<<18);
 	GPIOC->MODER &= ~(1U<<19);
 
-	//GPIOC->ODR |= (1<<8); //Zaznaczać takie rzeczy testowe później na do usunięcia
 
 }
 
