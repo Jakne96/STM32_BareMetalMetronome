@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include "stm32f4xx.h"
 #include "uart.h"
 #include "adc_dma.h"
@@ -20,8 +21,6 @@ extern uint16_t adc_raw_data[NUM_OF_CHANNELS];
 state metronom_state = PLAY;
 
 char new = 100;
-//char *bpm = &new;
-
 
 void TIM3_IRQHandler(void){
     		if(TIM3->SR & TIM_SR_UIF){
@@ -69,14 +68,26 @@ int main(void)
     //Opisać jakoś bardziej zgrabnie ten kod potem
 
 
-    //Czytanie z pamięci, prototyp, będziemy to testować albo jutro albo jak mnie najdzie.
     m24AA01_byte_read(BPM_MEMORY_ADDRESS, &new);
 
+    uint16_t alpha = 12;  // 0 < alpha < 1
+    uint16_t filtered = 0;
+    uint16_t last_output = 0;
+    uint16_t value = 0;
 
     while(1)
     {
-    	//printf("Value from sensor one : %d \n\r ",60 + ((adc_raw_data[0] - 760) / 18 ));
-    	//delay();
+    	//ADC i filtrowanie
+
+    	filtered = filtered + (adc_raw_data[0] - filtered) / alpha;
+    	value = (60 + (filtered - 760) / 40);
+
+    	if (abs(value - last_output) > 1) {
+    	    last_output = value;
+    	}
+
+    	//Sprawdzanie czy któryś przycisk został naciśnięty, jeśli tak, został zrobiony update timera i zapisanie obecnego stanu BPM do pamięci.
+
     	if((GPIOA->IDR & 112) < 112)
     		{
     		metronom_state = (GPIOA->IDR & 112);
@@ -90,14 +101,28 @@ int main(void)
     		disp7seg_display_number(new);
     		break;
     	case CONFIG:
-    		disp7seg_display_number((60+ (adc_raw_data[0] - 760) / 18));
-    		new = (60+ (adc_raw_data[0] - 760) / 18);
+    		//disp7seg_display_number(value); Wersja dla zakresu 60-200
+    		//new = value;
 
+    		disp7seg_display_number(value); //Wersja dla zakresu 60-150
+    		new = value;
     		break;
+
     	case RESET_STATE: break;
     	default: break;
+
     	}
+
+
+
 
 
     }
 }
+
+
+
+
+
+
+
