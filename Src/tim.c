@@ -29,7 +29,7 @@ void tim2_init(void)
 
 void tim2_stop(void){
 		TIM2->CR1 &= ~(CR1_CEN);
-} //Jeszcze jakiś update by się przydał albo coś takiego
+}
 
 void delay(void){
 	/*Wait for UIF */
@@ -40,8 +40,8 @@ void delay(void){
 
 void tim3_init(void)
 {
-/*Enable clock access to tim2*/
-	RCC->APB1ENR |=TIM3EN;
+		/*Enable clock access to tim3*/
+		RCC->APB1ENR |=TIM3EN;
 	    /*Set prescaler value*/
 	    TIM3->PSC =  16000 - 1 ;
 	    /*Set auto-reload value*/
@@ -55,19 +55,12 @@ void tim3_init(void)
 	    TIM3->CR1 = CR1_CEN;
 }
 
-void tim3_stop(void){
-		TIM3->CR1 &= ~(CR1_CEN);
-}
-
 void tim3_update(uint8_t new_bpm)
 {
-	//if(new_bpm > 115) new_bpm = 115;
-	//TIM3->CR1 &= ~CR1_CEN;
 	//New values of arr
 	TIM3->ARR = 0;
 	TIM3-> ARR = ((-5*new_bpm)/2) + 650;
 	TIM3->EGR |= EGR_UG;//Przy updacie trzeba to dać, bo inaczej timer może się zablokować i przerwanie może się nie generować
-	//TIM3->CR1 = CR1_CEN;
 }
 
 

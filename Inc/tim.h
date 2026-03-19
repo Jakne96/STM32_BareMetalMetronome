@@ -15,7 +15,6 @@ void tim2_stop(void);
 void delay(void);
 
 void tim3_init(void);
-void tim3_stop(void);
 void tim3_update(uint8_t new_bpm);
 
 #endif /* TIM_H_ */

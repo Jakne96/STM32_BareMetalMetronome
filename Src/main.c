@@ -14,17 +14,18 @@
 typedef enum{
 	PLAY = 96,
 	CONFIG = 80,
-	RESET_STATE = 48
+//	RESET_STATE = 48 //Ten reset chyba wydupić, także też trzeba będzie wywalić inicjalizacje pinu do buttona
 }state;
 
 extern uint16_t adc_raw_data[NUM_OF_CHANNELS];
-state metronom_state = PLAY;
+state metronom_state = PLAY; //Initial state
 
-char new = 100;
+char new = 100; //Zastąpić nazwę
 
-void TIM3_IRQHandler(void){
+//ISR for metronome update
+void TIM3_IRQHandler(void){ //W którym miejscu powinny być handlery?
     		if(TIM3->SR & TIM_SR_UIF){
-    			TIM3->SR &= ~(TIM_SR_UIF); //To ciekawe, ale jak zmieniam stan i updatuje ARR timera, to przerwanie przestaje działać
+    			TIM3->SR &= ~(TIM_SR_UIF);
     			GPIOA->ODR ^= (1U<<7);
     		}
     	}
@@ -32,44 +33,26 @@ void TIM3_IRQHandler(void){
 int main(void)
 {
     /*Initialize debug UART*/
-    uart_init(); //PA2
+    uart_init(); //PA2 //Uart był do debugowania ale przestał być potrzebny to można wywalić
+
     /*Initialize ADC DMA*/
-    adc_dma_init(); //PA0, PA1
+    adc_dma_init(); //ADC for potentiometer for changing BPM
     gpio_init(); //PA4 PA5 PA6 buttony, dioda PA7
-    //Wyświetlacz 7segmentowy, PC0-PC6, PC7 digit 4, PC8 digit 3, PC9 digit 2
-    //TODO: Napisać plik gpio.h do inicjalizacji przycisków i diody metronomu, napisać kod do wyświetlacza 7 segmentowego.
-    //Przetestować po kolei czy wszystko działa, dioda, timer, ADC z DMA, I2C, Wyświetlacz
 
 
-    tim2_init(); //Tim2 będzie od 7segmentowego a od diod będzie drugi timer
-    tim3_init();
-    i2c1_init();//PB8 i PB9
-    //60 + ((adc_raw_data[0] - 760) / 18 ); //Wstępna formuła żeby wyliczać BPM.
-    //Jeśli chce żeby tempo było takie jak ostatnie, no to musze zmieniać tempo tylko w trybie configu
-    //Trzeba sobie też wypisać jakie tu są piny zajęte
-    //3 GPIO od buttonów trzeba dodać
-    //Trzeba dodać wyświetlacz, albo 7segmentowy, albo i2c, można też zrobić najpierw z 7segmentowymi albo z I2C, 7segmentowy to kwestia 10 GPIO
-    //Czy oba timery zrobić na przerwaniach? No bo synchronizacja itd to mi sie tak wydaje że trzeba to zrobić dobrze.
+    tim2_init(); //Timer for refreshing 7 segment display
+    tim3_init(); //Timer for metronome update
+
+    i2c1_init(); //I2C for EEPROM memory
 
     disp7seg_init();
 
-    //To tak w ramach szablonu raczej
     NVIC_SetPriority(TIM3_IRQn, 0x03);
     NVIC_EnableIRQ(TIM3_IRQn);
 
-
-
-    //checking buttons,
-    //Ogólnie stany się zmieniają, tylko dioda przestaje świecić jak coś zmieniam, więc warto byłoby robić ten update tylko raz, można przemyśleć wykrywanie zmiany stanu
-    //Update timera działa, ale trzeba zobaczyć czy poprawnie się to przelicza i zmienić formułę,
-    //Zapisywanie do pamięci zrobić
-    //Reset state zrobić
-    //Jak przyjdzie analizator to też go ogarnąć potężnie i tu zczytać rzeczy.
-    //Opisać jakoś bardziej zgrabnie ten kod potem
-
-
     m24AA01_byte_read(BPM_MEMORY_ADDRESS, &new);
 
+    //Filtering (to chyba w osobną funkcje można walnąć)
     uint16_t alpha = 12;  // 0 < alpha < 1
     uint16_t filtered = 0;
     uint16_t last_output = 0;
@@ -86,37 +69,28 @@ int main(void)
     	    last_output = value;
     	}
 
-    	//Sprawdzanie czy któryś przycisk został naciśnięty, jeśli tak, został zrobiony update timera i zapisanie obecnego stanu BPM do pamięci.
-
+    	//Looking for state changes //Funkcją może to można
     	if((GPIOA->IDR & 112) < 112)
     		{
     		metronom_state = (GPIOA->IDR & 112);
     		tim3_update(new);
     		m24AA01_write(BPM_MEMORY_ADDRESS, 1, &new); //Prototyp zapisywania BPM do EEPROMu za każdym razem.
-
     		}
 
+    	//State machine
     	switch(metronom_state){
     	case PLAY:
     		disp7seg_display_number(new);
     		break;
-    	case CONFIG:
-    		//disp7seg_display_number(value); Wersja dla zakresu 60-200
-    		//new = value;
 
-    		disp7seg_display_number(value); //Wersja dla zakresu 60-150
+    	case CONFIG:
+    		disp7seg_display_number(value);
     		new = value;
     		break;
 
-    	case RESET_STATE: break;
     	default: break;
 
     	}
-
-
-
-
-
     }
 }
 
