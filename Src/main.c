@@ -78,13 +78,14 @@ int main(void)
     }
 }
 
-//ISR for metronome update
-void TIM3_IRQHandler(void){
-    		if(TIM3->SR & TIM_SR_UIF){
-    			TIM3->SR &= ~(TIM_SR_UIF);
-    			GPIOA->ODR ^= (1U<<7);
-    		}
-    	}
+	//ISR for metronome update
+	void TIM3_IRQHandler(void)
+{
+    	if(TIM3->SR & TIM_SR_UIF){
+    		TIM3->SR &= ~(TIM_SR_UIF);
+    		GPIOA->ODR ^= (1U<<7);
+    }
+}
 
 
 
