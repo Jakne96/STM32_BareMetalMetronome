@@ -23,11 +23,3 @@ void m24AA01_write(char memory_cell, int n, char* data){
 void m24AA01_burst_read(char memory_cell, int n, char* data){
 	i2c1_burst_read(M24AA01_SADDR, memory_cell, n, data);
 }
-
-//Pytanie jeszcze jakie funkcje może chcieć mieć taka pamięć, pewnie usuwanie\
-kopiowanie\
-przenoszenie.\
-Może wyświetlanie tak samo, dajmy na to przez konsole nawet\
-Zgranie całej pamięci\
-Jakieś komunikaty błędów dla przekroczenia komórki, bo przecież max co funkcja przyjmie to 0xFF, a w pamięci\
-są komórki do 0x7F
