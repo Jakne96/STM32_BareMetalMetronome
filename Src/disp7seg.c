@@ -25,7 +25,7 @@ uint8_t digits[10] =
 
 void disp7seg_init(void)
 {
-	//Wyświetlacz 7segmentowy, PC0-PC6, PC7 digit 4, PC8 digit 3, PC9 digit 2
+	//GPIO Config, PC0-PC6 for segments, PC7-PC9 for digits multiplexing 
 	RCC->AHB1ENR |= GPIOCEN;
 
 	GPIOC->MODER |= (1U<<0);
@@ -48,7 +48,6 @@ void disp7seg_init(void)
 	GPIOC->MODER &= ~(1U<<17);
 	GPIOC->MODER |= (1U<<18);
 	GPIOC->MODER &= ~(1U<<19);
-
 
 }
 
