@@ -21,6 +21,11 @@ state metronom_state = PLAY; //Initial state
 
 char current_bpm = 100;
 
+//ADC Filtering Parameters
+    uint16_t alpha = 12;
+    uint16_t filtered = 0;
+    uint16_t last_output = 0;
+    uint16_t value = 0;
 
 int main(void)
 {
@@ -32,32 +37,26 @@ int main(void)
 
     i2c1_init(); //I2C for EEPROM memory, PB8 PB9
 
-    disp7seg_init(); //PC0-PC9 pins
+    disp7seg_init(); //PC0-PC6 for segments PC7-PC9 for digit multiplexing
 
     NVIC_SetPriority(TIM3_IRQn, 0x03);
     NVIC_EnableIRQ(TIM3_IRQn);
 
-
     m24AA01_byte_read(BPM_MEMORY_ADDRESS, &current_bpm);
-
-    //Filtering (to chyba w osobną funkcje można walnąć)
-    uint16_t alpha = 12;
-    uint16_t filtered = 0;
-    uint16_t last_output = 0;
-    uint16_t value = 0;
 
     while(1)
     {
-    	//ADC and filtering
-
+    	//EMA Filter for ADC		
     	filtered = filtered + (adc_raw_data[0] - filtered) / alpha;
+		
     	value = (60 + (filtered - 760) / 40);
-
+		
+		//Deadzone
     	if (abs(value - last_output) > 1) {
     	    last_output = value;
     	}
 
-    	//Looking for state changes //Funkcją może to można
+    	//Looking for state changes
     	if((GPIOA->IDR & 112) < 112)
     		{
     		metronom_state = (GPIOA->IDR & 112);
@@ -65,17 +64,14 @@ int main(void)
     		m24AA01_write(BPM_MEMORY_ADDRESS, 1, &current_bpm); //Prototyp zapisywania BPM do EEPROMu za każdym razem.
     		}
 
-    	//State machine
     	switch(metronom_state){
     	case PLAY:
     		disp7seg_display_number(current_bpm);
     		break;
-
     	case CONFIG:
     		disp7seg_display_number(value);
     		current_bpm = value;
     		break;
-
     	default: break;
 
     	}
