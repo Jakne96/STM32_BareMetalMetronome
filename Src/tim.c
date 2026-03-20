@@ -31,7 +31,7 @@ void delay(void){
 void tim3_init(void)
 {
 		RCC->APB1ENR |=TIM3EN;
-	    TIM3->PSC =  16000 - 1 ;
+	    TIM3->PSC =  8000 - 1 ;
 	    TIM3->ARR =  500 - 1;
 	    TIM3->CNT = 0;
 
