@@ -33,4 +33,5 @@ Metronome is a device that dictates the steady tempo most commonly used to help 
 
 ## DEMO
 
-(insert logic analyzer screen)
+![image.png](attachment:e2519398-b9db-46df-9e8c-c0232dc1221c:image.png)
+Screen from logic analyzer - It displays one operation of writing the value 120 to EEPROM.
