@@ -23,10 +23,9 @@
 #define SR1_RXNE (1U<<6)
 #define SR1_BTF (1U<<2)
 
-/*
- * PB8 ---- SCL
- * PB9 ----- SDA
- * */
+// PB8 - SCL
+// PB9 - SDA
+ 
 
 void i2c1_init(void)
 {
@@ -55,7 +54,6 @@ void i2c1_init(void)
 	GPIOB->AFR[1] &= ~(1U<<5);
 	GPIOB->AFR[1] |= (1U<<6);
 	GPIOB->AFR[1] &= ~(1U<<8);
-
 
 	RCC->APB1ENR |= I2C1EN;
 
@@ -93,22 +91,23 @@ void i2c1_byte_read(char saddr, char maddr, char* data)
 }
 
 void i2c1_burst_read(char saddr, char maddr, int n, char* data) {
-volatile int tmp;
-while (I2C1->SR2 & (SR2_BUSY)){}
- I2C1->CR1 |= CR1_START;
-while (!(I2C1->SR1 & SR1_SB)){}
-I2C1->DR = saddr << 1;
-while (!(I2C1->SR1 & SR1_ADDR)){}
-tmp = I2C1->SR2;
-   while (!(I2C1->SR1 & SR1_TXE)){}
-   I2C1->DR = maddr;
-   while (!(I2C1->SR1 & SR1_TXE)){}
-   I2C1->CR1 |= CR1_START;
-   while (!(I2C1->SR1 & SR1_SB)){}
-   I2C1->DR = saddr << 1 | 1;
-   while (!(I2C1->SR1 & (SR1_ADDR))){}
-   tmp = I2C1->SR2;
-     I2C1->CR1 |=  CR1_ACK;
+	volatile int tmp;
+	while (I2C1->SR2 & (SR2_BUSY)){}
+ 	I2C1->CR1 |= CR1_START;
+	while (!(I2C1->SR1 & SR1_SB)){}
+	I2C1->DR = saddr << 1;
+	while (!(I2C1->SR1 & SR1_ADDR)){}
+	tmp = I2C1->SR2;
+    while (!(I2C1->SR1 & SR1_TXE)){}
+    I2C1->DR = maddr;
+    while (!(I2C1->SR1 & SR1_TXE)){}
+    I2C1->CR1 |= CR1_START;
+    while (!(I2C1->SR1 & SR1_SB)){}
+    I2C1->DR = saddr << 1 | 1;
+    while (!(I2C1->SR1 & (SR1_ADDR))){}
+    tmp = I2C1->SR2;
+    I2C1->CR1 |=  CR1_ACK;
+	
    while(n > 0U)
    {
        if(n == 1U)
