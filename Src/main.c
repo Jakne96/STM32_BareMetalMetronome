@@ -61,7 +61,8 @@ int main(void)
     		{
     		metronom_state = (GPIOA->IDR & 112);
     		tim3_update(current_bpm);
-    		m24AA01_write(BPM_MEMORY_ADDRESS, 1, &current_bpm); //Prototyp zapisywania BPM do EEPROMu za każdym razem.
+    		m24AA01_write(BPM_MEMORY_ADDRESS, 1, &current_bpm);
+			while((GPIOA->IDR & 112) < 112){}
     		}
 
     	switch(metronom_state){
