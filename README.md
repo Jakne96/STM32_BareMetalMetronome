@@ -35,3 +35,8 @@ Metronome is a device that dictates the steady tempo most commonly used to help 
 https://youtu.be/IYEvie-afXQ
 <img width="1541" height="422" alt="image" src="https://github.com/user-attachments/assets/a2e67291-ef23-417d-ac19-10c20e2280e7" />
 Screen from logic analyzer - It displays one operation of writing the value 120 to EEPROM memory cell 0x10.
+
+## Further improvements
+- fix diode flickering while pushing the button(DONE, video to be updated)
+- Test the design with encoder instead of potentiometer
+- Prepare PCB for the design
